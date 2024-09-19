@@ -19,9 +19,9 @@ namespace matrix{
         void set_point(bool val, int index);
 
         bool* get_neighbors(int *coords);
-        bool* get_negihbors(int index);
+        bool* get_neighbors(int index);
 
-        int count_negihbors(int* coords);
+        int count_neighbors(int* coords);
         int count_neighbors(int index);
 
 

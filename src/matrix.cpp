@@ -1,6 +1,8 @@
 #include "matrix.h"
 #include <stdlib.h>
 
+
+
 matrix::BinaryMatrix::BinaryMatrix(int dimensions, int* lengths){
     this->m_dimensions = dimensions;
     this->m_lengths = lengths;
@@ -20,6 +22,15 @@ matrix::BinaryMatrix::BinaryMatrix(int dimensions, int* lengths){
 }
 
 
+matrix::BinaryMatrix::BinaryMatrix(int dimensions, int* lengths, uint8_t* data)
+    : BinaryMatrix(dimensions, lengths) // Use initializer list to call the other constructor
+{
+    for(int i=0; i<m_total_bytes; i++){
+        m_data[i] = data[i];
+    }
+}
+
+
 
 void matrix::BinaryMatrix::get_index_of_coords(int &index, int* coords){
     index=0;
@@ -29,13 +40,18 @@ void matrix::BinaryMatrix::get_index_of_coords(int &index, int* coords){
 }
 
 void matrix::BinaryMatrix::get_coords_of_index(int &index, int* coords){
+    int temp = index;
+    for(int i = m_dimensions-1; i >= 0; i--) {
+        coords[i] = temp / m_cumlengths[i];
+        temp = temp % m_cumlengths[i];
+    }
 
 }
 
 bool matrix::BinaryMatrix::get_point(int* coords){
     int index;
     get_index_of_coords(index, coords);
-    get_point(index); 
+    return get_point(index); 
 }
 
 bool matrix::BinaryMatrix::get_point(int index){
@@ -59,4 +75,35 @@ void matrix::BinaryMatrix::set_point(bool val, int* coords){
     int index;
     get_index_of_coords(index, coords);
     set_point(val, index);
+}
+
+
+bool* matrix::BinaryMatrix::get_neighbors(int index){ //Cross neighbors
+    int num_of_neighbors = 2*m_dimensions;
+    bool* temp = (bool*) malloc(num_of_neighbors* sizeof(bool));
+    for(int i = 0; i < m_dimensions; i++){
+    int neg_idx = index - i*m_cumlengths[i];
+    int pos_idx = index + i*m_cumlengths[i];
+    temp[2*i] = (neg_idx >= 0) ? get_point(neg_idx) : 0; // Check bounds
+    temp[2*i+1] = (pos_idx < m_total_voxels) ? get_point(pos_idx) : 0; // Check bounds
+}
+
+    return temp;    
+}
+
+
+bool* matrix::BinaryMatrix::get_neighbors(int* coords){
+    int index;
+    get_index_of_coords(index, coords);
+    return get_neighbors(index);
+}
+
+
+int matrix::BinaryMatrix::count_neighbors(int index){ //Cross neighbors
+    int temp=0;
+    for(int i = 0; i<m_dimensions; i++){
+        temp += get_point(index-i*m_cumlengths[i]);
+        temp += get_point(index+i*m_cumlengths[i]);
+    }
+    return temp;
 }
